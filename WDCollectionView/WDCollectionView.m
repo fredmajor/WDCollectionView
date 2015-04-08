@@ -10,7 +10,7 @@
 #import "WDCollectionViewMainView.h"
 #import "WDCollectionViewItem.h"
 
-#define WDCollectionNilDataset @"__WD_NIL_DATASET_ID"
+
 
 
 #pragma mark -
@@ -69,6 +69,8 @@
                                                             andScrollView:self];
     [_mainCollectionView setDataSource:[self viewDataSource]];
     [_mainCollectionView setDelegate:[self viewDelegate]];
+
+    [self setDocumentView:_mainCollectionView];
     NSLog(@"WDCollectionView - common init done");
 
 }

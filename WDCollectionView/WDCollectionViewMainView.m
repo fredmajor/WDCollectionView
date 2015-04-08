@@ -6,6 +6,7 @@
 //  Copyright (c) 2015 wd. All rights reserved.
 //
 
+#import <QuartzCore/QuartzCore.h>
 #import "WDCollectionViewMainView.h"
 #import "WDCollectionView.h"
 #import "WDCollectionLayoutHelpers.h"
@@ -13,7 +14,7 @@
 
 @interface WDCollectionViewMainView()
 -(void)WD_commonInit;
--(void)WD_handleGraphicalChangeOfDataset;
+-(void)WD_handleGraphicalChangeOfDataset:(NSString*) oldDatasetId;
 -(void)WD_calculateCachedStaticViewAndCellProperties;
 -(void)WD_clearViewCachesAndDisplayNoItemsViewIfAvailable;
 -(void)WD_initDefaultValuesForANewDataset;
@@ -21,6 +22,7 @@
 -(void)WD_enqueueCellsAtIndexes:(NSIndexSet *)indexes;
 -(void)WD_reloadCellsAtIndexes:(NSIndexSet *)indexes;
 -(void)WD_setViewSize:(NSSize)newSize;
+-(CALayer*)WD_RootLayerForDataset:(NSString *)datasetID;
 @end
 
 @implementation WDCollectionViewMainView{
@@ -62,7 +64,7 @@
     NSMutableDictionary *_itemCurrentHorizontalSpacing;
     NSMutableDictionary *_cachedNumberOfColumns;
 
-
+    NSMutableDictionary *_rootLayerForDatasetId;
 }
 
 #pragma mark -
@@ -113,7 +115,17 @@
     _itemCurrentHorizontalSpacing = [NSMutableDictionary dictionary];
     _cachedNumberOfColumns = [NSMutableDictionary dictionary];
 
-    //add observing _enclosingScrollView
+    /*--- Layers, etc properties ---*/
+    _rootLayerForDatasetId = [NSMutableDictionary dictionary];
+
+    [self setLayer:[self WD_RootLayerForDataset:WDCollectionNilDataset]];
+    [self setFrameSize:_enclosingScrollView.contentView.bounds.size];
+    //[self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawDuringViewResize];
+    [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
+    [self setWantsLayer:YES];
+    //  self.translatesAutoresizingMaskIntoConstraints = NO;      /* doesn't work with this set... */
+    [self setAutoresizingMask:NSViewNotSizable];
+    [self setNeedsDisplay:YES];
 }
 
 #pragma mark -
@@ -121,11 +133,11 @@
 - (void)datasetChanged:(NSString *)datasetId {
     NSLog(@"----------------------------------------");
     NSLog(@"View is handling a dataset change for a dataset with id=%@", datasetId);
+    NSString *oldDatasetID = [NSString stringWithString:_cachedDatasetId];
 
     //dataset id has changed?
     if(![_cachedDatasetId isEqualToString:datasetId]){
         _cachedDatasetId=datasetId;
-        [self WD_handleGraphicalChangeOfDataset];
 
         //do we already know the new dataset?
         if(![_knownDatasets containsObject:_cachedDatasetId]){
@@ -133,6 +145,7 @@
             [self WD_calculateCachedStaticViewAndCellProperties];
             [_knownDatasets addObject:_cachedDatasetId];
         }
+        [self WD_handleGraphicalChangeOfDataset:oldDatasetID];
     }
 
     //update view size if needed
@@ -229,11 +242,11 @@
     NSLog(@"possibly cache cell range: (%lu,%lu)", cellRangePossiblyToCache.location, cellRangePossiblyToCache.length);
     _cachedRangesOfPotentialItemsInCacheArea[_cachedDatasetId] = [NSValue valueWithRange:cellRangePossiblyToCache];
 
-
 }
 
 - (void)WD_initDefaultValuesForANewDataset {
     NSLog(@"initializing cached values for a new dataset");
+    //_cachedDatasetId = @"";
     _didDatasetHaveItemsLastTime[_cachedDatasetId]=@YES;
     _itemCurrentSizes[_cachedDatasetId] =[NSValue valueWithSize:WDCalculateSize(wdCollectionItemWidthDef, wdCollectionItemDefaultAspect)];
     _itemMaxSizes[_cachedDatasetId] = [NSValue valueWithSize:WDCalculateSize(wdCollectionItemWidthMax, wdCollectionItemDefaultAspect)];
@@ -248,12 +261,20 @@
     _cachedIndicesOfRealItemsInPrepareArea[_cachedDatasetId] = [NSIndexSet indexSet];
     _cachedIndicesOfRealItemsInCacheArea[_cachedDatasetId] = [NSIndexSet indexSet];
     _cachedNumberOfItemsInDataset[_cachedDatasetId] = [NSNumber numberWithUnsignedInteger:0];
-    _cachedCollectionViewSize[_cachedDatasetId] = [NSValue valueWithSize:NSZeroSize];
+    _cachedCollectionViewSize[_cachedDatasetId] = [NSValue valueWithSize:_enclosingScrollView.contentView.bounds.size];
 }
 
 //change main layer, scroll to old position if available, etc
-- (void)WD_handleGraphicalChangeOfDataset {
+-(void)WD_handleGraphicalChangeOfDataset:(NSString*) oldDatasetId{
     NSLog(@"Handling graphical change of a dataset");
+    _cachedCollectionViewSize[oldDatasetId] = [NSValue valueWithSize:self.frame.size];
+    _cachedPositionsOfScrollView[oldDatasetId] = [NSValue valueWithPoint:_enclosingScrollView.contentView.bounds.origin];
+    [self setLayer:[self WD_RootLayerForDataset:_cachedDatasetId]];
+    NSSize cachedVieSize = [((NSValue*)_cachedCollectionViewSize[_cachedDatasetId]) sizeValue];
+    NSPoint pointToScrollTo = [((NSValue*)_cachedPositionsOfScrollView[_cachedDatasetId]) pointValue];
+    [self WD_setViewSize:cachedVieSize];
+    [[_enclosingScrollView documentView] scrollPoint:pointToScrollTo];
+    [self setNeedsDisplay:YES];
 }
 
 - (void) WD_clearViewCachesAndDisplayNoItemsViewIfAvailable{
@@ -324,5 +345,52 @@
 
 -(void)WD_setViewSize:(NSSize)newSize{
     NSLog(@"Setting new view size: (%f,%f)", newSize.width, newSize.height);
+    [self setFrameSize:newSize];
+    [self setNeedsDisplay:YES];
 }
+
+//- (OEGridViewCell *)cellForItemAtIndex:(NSUInteger)index makeIfNecessary:(BOOL)necessary
+//{
+//    OEGridViewCell *result = [_visibleCellByIndex objectForKey:[NSNumber numberWithUnsignedInt:index]];
+//    if(result == nil && necessary)
+//    {
+//        result = [_dataSource gridView:self cellForItemAtIndex:index];
+//        [result OE_setIndex:index];
+//        [result setSelected:[_selectionIndexes containsIndex:index] animated:NO];
+//        [result setFrame:[self rectForCellAtIndex:index]];
+//    }
+//
+//    return result;
+//}
+
+
+#pragma mark -
+#pragma mark View setup
+- (BOOL)isFlipped{
+    return YES;
+}
+
+- (BOOL) wantsLayer{
+    return YES;
+}
+
+-(CALayer*)WD_RootLayerForDataset:(NSString *)datasetID{
+    if(datasetID == nil || [datasetID length] ==0){
+        datasetID = WDCollectionNilDataset;
+    }
+
+    CALayer* lay;
+    lay = _rootLayerForDatasetId[datasetID];
+    if(!lay){
+        lay = [CAScrollLayer layer];
+        [lay setNeedsDisplayOnBoundsChange:NO];
+        [lay setMasksToBounds:NO];
+        lay.autoresizingMask = kCALayerNotSizable;
+       // lay.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
+        lay.backgroundColor = (randomNiceColor()).CGColor;
+        _rootLayerForDatasetId[datasetID] = lay;
+    }
+    return lay;
+}
+
 @end

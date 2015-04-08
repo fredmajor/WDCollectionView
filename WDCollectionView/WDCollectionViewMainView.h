@@ -8,7 +8,7 @@
 
 #import <Cocoa/Cocoa.h>
 #import "WDCollectionView.h"
-
+#define WDCollectionNilDataset @"__WD_NIL_DATASET_ID"
 
 #define wdCollectionViewVerticalSpacingDef 30.0F
 #define wdCollectionViewHorizontalSpacingMinDef 20.0F

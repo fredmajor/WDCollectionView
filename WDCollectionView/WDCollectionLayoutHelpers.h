@@ -85,6 +85,36 @@ static inline CGFloat WDGetViewHeightToFitAllItems(NSUInteger numberOfItems, NSU
     return rowsNeeded*(itemHeight+verticalItemSpacing) + verticalItemSpacing;
 }
 
+static inline NSColor* randomNiceColor(){
+    // This method returns a random color in a range of nice ones,
+    // using HSB coordinates.
+
+    // Random hue from 0 to 359 degrees.
+
+    CGFloat hue = (arc4random() % 360) / 359.0f;
+
+    // Random saturation from 0.0 to 1.0
+
+    CGFloat saturation = (float)arc4random() / UINT32_MAX;
+
+    // Random brightness from 0.0 to 1.0
+
+    CGFloat brightness = (float)arc4random() / UINT32_MAX;
+
+    // Limit saturation and brightness to get a nice colors palette.
+    // Remove the following 2 lines to generate a color from the full range.
+
+    saturation = saturation < 0.5 ? 0.5 : saturation;
+    brightness = brightness < 0.9 ? 0.9 : brightness;
+
+    // Return a random UIColor.
+
+    return [NSColor colorWithHue:hue
+                      saturation:saturation
+                      brightness:brightness
+                           alpha:1];
+}
+
 @interface WDCollectionViewLayoutHelper :NSObject
 +(NSIndexSet *)arrayWithNumbersToIndexSet:(NSArray*) array;
 +(NSIndexSet *)realIndexSetForPotentialRange:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs;
