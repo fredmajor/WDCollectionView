@@ -29,7 +29,5 @@
 @property(nonatomic, readonly) NSRect      hitRect;
 @property(nonatomic, readonly) id          draggingImage;
 @property(nonatomic, assign) BOOL highlighted;
-@property(nonatomic, weak) id representedObject;
-@property(nonatomic, strong) NSURL *imageUrl;
 
 @end

@@ -26,6 +26,10 @@
 		581FAA361AD1EE9E004F509A /* WDCollectionViewMainView.m in Sources */ = {isa = PBXBuildFile; fileRef = 581FAA341AD1EE9E004F509A /* WDCollectionViewMainView.m */; };
 		583889801AD15F4500DE8805 /* WDCollectionView.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 583889741AD15F4500DE8805 /* WDCollectionView.framework */; };
 		583889871AD15F4500DE8805 /* WDCollectionViewTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 583889861AD15F4500DE8805 /* WDCollectionViewTests.m */; };
+		587FDF0B1AD86491000C91B7 /* WDCollectionViewImage.h in Headers */ = {isa = PBXBuildFile; fileRef = 587FDF091AD86491000C91B7 /* WDCollectionViewImage.h */; };
+		587FDF0C1AD86491000C91B7 /* WDCollectionViewImage.m in Sources */ = {isa = PBXBuildFile; fileRef = 587FDF0A1AD86491000C91B7 /* WDCollectionViewImage.m */; };
+		587FDF0F1AD86ACA000C91B7 /* WDGridViewMainCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 587FDF0D1AD86ACA000C91B7 /* WDGridViewMainCell.h */; };
+		587FDF101AD86ACA000C91B7 /* WDGridViewMainCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 587FDF0E1AD86ACA000C91B7 /* WDGridViewMainCell.m */; };
 		58A903681AD3418800204950 /* WDCollectionLayoutHelpers.h in Sources */ = {isa = PBXBuildFile; fileRef = 321D956885DB61BCCA45099F /* WDCollectionLayoutHelpers.h */; };
 		58A9036A1AD341B400204950 /* WDCollectionViewLayoutHelpersTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 58A903691AD341B400204950 /* WDCollectionViewLayoutHelpersTests.m */; };
 /* End PBXBuildFile section */
@@ -63,6 +67,10 @@
 		5838897F1AD15F4500DE8805 /* WDCollectionViewTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WDCollectionViewTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		583889851AD15F4500DE8805 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		583889861AD15F4500DE8805 /* WDCollectionViewTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = WDCollectionViewTests.m; sourceTree = "<group>"; };
+		587FDF091AD86491000C91B7 /* WDCollectionViewImage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDCollectionViewImage.h; sourceTree = "<group>"; };
+		587FDF0A1AD86491000C91B7 /* WDCollectionViewImage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDCollectionViewImage.m; sourceTree = "<group>"; };
+		587FDF0D1AD86ACA000C91B7 /* WDGridViewMainCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDGridViewMainCell.h; sourceTree = "<group>"; };
+		587FDF0E1AD86ACA000C91B7 /* WDGridViewMainCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDGridViewMainCell.m; sourceTree = "<group>"; };
 		58A903691AD341B400204950 /* WDCollectionViewLayoutHelpersTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDCollectionViewLayoutHelpersTests.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -129,6 +137,10 @@
 				321D92D6FB1181A818E55FBA /* WDGridViewCell.m */,
 				321D92DC9F6923C74A4236D8 /* WDGridViewCell.h */,
 				321D9AC4DEBEA322B65D3AF6 /* WDGridViewCell+WDCollectionViewMainView.h */,
+				587FDF091AD86491000C91B7 /* WDCollectionViewImage.h */,
+				587FDF0A1AD86491000C91B7 /* WDCollectionViewImage.m */,
+				587FDF0D1AD86ACA000C91B7 /* WDGridViewMainCell.h */,
+				587FDF0E1AD86ACA000C91B7 /* WDGridViewMainCell.m */,
 			);
 			path = WDCollectionView;
 			sourceTree = "<group>";
@@ -168,7 +180,9 @@
 			files = (
 				581FAA351AD1EE9E004F509A /* WDCollectionViewMainView.h in Headers */,
 				581FAA311AD1EE58004F509A /* WDCollectionView.h in Headers */,
+				587FDF0B1AD86491000C91B7 /* WDCollectionViewImage.h in Headers */,
 				321D984A7AE693DE499098C4 /* WDCollectionLayoutHelpers.h in Headers */,
+				587FDF0F1AD86ACA000C91B7 /* WDGridViewMainCell.h in Headers */,
 				321D9925B6C7098EBE6058B4 /* WDGridLayer.h in Headers */,
 				321D9FD9EE12AF3480F79EAF /* WDGridViewLayoutManager.h in Headers */,
 				321D9842C7D7C3C989498C5A /* WDGridViewCell.h in Headers */,
@@ -272,6 +286,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				587FDF101AD86ACA000C91B7 /* WDGridViewMainCell.m in Sources */,
+				587FDF0C1AD86491000C91B7 /* WDCollectionViewImage.m in Sources */,
 				58A903681AD3418800204950 /* WDCollectionLayoutHelpers.h in Sources */,
 				581FAA321AD1EE58004F509A /* WDCollectionView.m in Sources */,
 				581FAA361AD1EE9E004F509A /* WDCollectionViewMainView.m in Sources */,

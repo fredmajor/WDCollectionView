@@ -117,7 +117,7 @@ static inline NSColor* randomNiceColor(){
 
 @interface WDCollectionViewLayoutHelper :NSObject
 +(NSIndexSet *)arrayWithNumbersToIndexSet:(NSArray*) array;
-+(NSIndexSet *)realIndexSetForPotentialRange:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs;
++(NSIndexSet *)intersectGraphicalRangeWithDatasetItemNumber:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs;
 +(NSArray*)WDCalculateReloadIndicesSetsFromRealCacheIndices:(NSIndexSet *)cacheIndices
                                          realPrepareIndices:(NSIndexSet*)prepareIndices
                                          realVisibleIndices:(NSIndexSet*)visibleIndices;
@@ -137,7 +137,7 @@ static inline NSColor* randomNiceColor(){
     }];
     return result;
 }
-+(NSIndexSet *) realIndexSetForPotentialRange:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs{
++(NSIndexSet *)intersectGraphicalRangeWithDatasetItemNumber:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs{
     NSRange datasetItemRange = NSMakeRange(0, itemsInDs);
     NSRange realRange = NSIntersectionRange(potentialRange, datasetItemRange);
     return [NSIndexSet indexSetWithIndexesInRange:realRange];

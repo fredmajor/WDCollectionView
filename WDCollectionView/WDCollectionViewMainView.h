@@ -9,6 +9,7 @@
 #import <Cocoa/Cocoa.h>
 #import "WDCollectionView.h"
 #import "WDGridViewLayoutManager.h"
+#import "WDGridViewMainCell.h"
 
 #define WDCollectionNilDataset @"__WD_NIL_DATASET_ID"
 
@@ -28,7 +29,7 @@
 
 @class WDCollectionView, WDGridViewCell;
 
-@interface WDCollectionViewMainView : NSView<WDGridViewLayoutManagerProtocol>
+@interface WDCollectionViewMainView : NSView<WDGridViewLayoutManagerProtocol,WDCollectionViewMainCellCallback>
 
 /* This gets created only from WDCollectionView. Not to be created directly by user */
 - (instancetype)initWithFrame:(NSRect)frame

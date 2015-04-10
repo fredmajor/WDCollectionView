@@ -8,7 +8,7 @@
 
 #import "WDCollectionView.h"
 #import "WDCollectionViewMainView.h"
-#import "WDGridViewCell.h"
+#import "WDGridViewMainCell.h"
 
 
 #pragma mark -
@@ -19,11 +19,12 @@
 @property (weak, nonatomic) NSArray* WD_currentDatasource;
 @property (strong, nonatomic) NSString* WD_currentDatasourceId;
 
--(WDGridViewCell *) tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex;
+-(WDGridViewMainCell *)tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex;
 @end
 
 @implementation WDCollectionView{
     WDCollectionViewMainView *_mainCollectionView;
+    NSCache* _cacheForImages;
 }
 //public
 @synthesize itemSize;
@@ -53,6 +54,7 @@
 }
 
 -(void) commonInit{
+    _cacheForImages = [[NSCache alloc]init];
     [self setHasHorizontalScroller:NO];
     [self setHasVerticalScroller:YES];
     [self setBorderType:NSNoBorder];
@@ -98,22 +100,26 @@
 }
 
 -(WDGridViewCell*) itemForIndex:(NSUInteger) index {
-    WDGridViewCell *cell;
+    WDGridViewMainCell *cell;
     cell = [self tryToFindItemAskedForAtDifferentIndex:index];
     if(!cell)
         cell = [_mainCollectionView dequeueReusableCell];
     if(!cell)
-        cell = [[WDGridViewCell alloc]init];
+        cell = [[NSClassFromString([[self class] classNameToUseAsMainCell]) alloc]init];
     
     id object = [self.WD_currentDatasource objectAtIndex:index];
     cell.representedObject = object;
-   // cell.imageUrl =
+    cell.delegate = self;
+    cell.itemCallback = _mainCollectionView;
+    cell.cacheProvider = self;
     cell.backgroundColor = [NSColor blueColor].CGColor;
+    cell.imageUrl = [[self class] getImageUrlFromRepresentedObject:object];
+    [cell loadImageIfNeeded]; //can be called many times without side-effects
     
     return cell;
 }
 
--(WDGridViewCell *) tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex{
+-(WDGridViewMainCell *)tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex{
     return nil;
 }
 
@@ -130,7 +136,6 @@
     return [self.WD_currentDatasource count];
 }
 
-
 #pragma mark -
 #pragma mark Delegate and datasource for WDCollectionViewMain
 -(id<WDCollectionViewDelegate>) viewDelegate{           /*user can override in order to use a different object */
@@ -141,7 +146,18 @@
     return self;
 }
 
--(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject{
+/* Overloaded in a subclass*/
++(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject{
     return nil;
 }
+
+/* Overloaded in a subclass*/
++ (NSString*)classNameToUseAsMainCell{
+    return @"WDGridViewMainCell";
+}
+
+-(NSCache*) cacheForLoadedImages{
+    return _cacheForImages;
+}
+
 @end

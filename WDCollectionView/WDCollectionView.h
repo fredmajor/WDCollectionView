@@ -7,6 +7,7 @@
 //
 
 #import <Cocoa/Cocoa.h>
+#import "WDGridViewMainCell.h"
 
 @class WDCollectionViewMainView, WDGridViewCell;
 @class WDGridViewCell;
@@ -32,7 +33,7 @@
 @end
 
 
-@interface WDCollectionView : NSScrollView<WDCollectionViewDataSource, WDCollectionViewDelegate>
+@interface WDCollectionView : NSScrollView<WDCollectionViewDataSource, WDCollectionViewDelegate,WDCollectionViewMainCellCacheProvider>
 
 #pragma mark -
 #pragma mark Public properties to manage visual attributes
@@ -50,7 +51,8 @@
 -(id<WDCollectionViewDelegate>) viewDelegate;
 -(id<WDCollectionViewDataSource>) viewDataSource;
 
--(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject;
++ (NSURL*) getImageUrlFromRepresentedObject:(id) representedObject;
++ (NSString*)classNameToUseAsMainCell;
 
 
 @end

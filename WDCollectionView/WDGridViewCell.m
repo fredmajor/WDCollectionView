@@ -15,8 +15,6 @@
 @synthesize selected=_selected;
 @synthesize editing=_editing;
 @synthesize foregroundLayer=_foregroundLayer;
-@synthesize representedObject = _representedObject;
-@synthesize imageUrl;
 
 - (id)init
 {
@@ -58,8 +56,6 @@
     [self setHidden:NO];
     [self setOpacity:1.0];
     [self setShadowOpacity:0.0];
-    self.representedObject = nil;
-    self.imageUrl = nil;
 }
 
 //- (void)setRepresentedObject:(id)representedObject
