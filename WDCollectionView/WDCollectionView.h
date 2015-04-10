@@ -8,14 +8,15 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class WDCollectionViewMainView, WDCollectionViewItem;
+@class WDCollectionViewMainView, WDGridViewCell;
+@class WDGridViewCell;
 
 
 @protocol WDCollectionViewDataSource <NSObject>
 @required
 -(NSUInteger) numberOfItemsInCurrentDataset;
 -(NSDictionary *)didItemsChange:(NSIndexSet*)indices;
--(WDCollectionViewItem*) itemForIndex:(NSUInteger) index;
+-(WDGridViewCell*) itemForIndex:(NSUInteger) index;
 
 @optional
 - (NSView*) viewForEmptyDatasetForCollectionView:(WDCollectionViewMainView*)sender;
@@ -48,6 +49,8 @@
 #pragma mark Delegate and datasource for WDCollectionViewMain
 -(id<WDCollectionViewDelegate>) viewDelegate;
 -(id<WDCollectionViewDataSource>) viewDataSource;
+
+-(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject;
 
 
 @end

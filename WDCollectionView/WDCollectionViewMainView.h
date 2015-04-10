@@ -8,6 +8,8 @@
 
 #import <Cocoa/Cocoa.h>
 #import "WDCollectionView.h"
+#import "WDGridViewLayoutManager.h"
+
 #define WDCollectionNilDataset @"__WD_NIL_DATASET_ID"
 
 #define wdCollectionViewVerticalSpacingDef 30.0F
@@ -24,13 +26,9 @@
 #define wdCollectionCacheItemsAreaExtensionUp 300
 #define wdCollectionCacheItemsAreaExtensionDown 600
 
-@class WDCollectionView;
+@class WDCollectionView, WDGridViewCell;
 
-
-
-
-
-@interface WDCollectionViewMainView : NSView
+@interface WDCollectionViewMainView : NSView<WDGridViewLayoutManagerProtocol>
 
 /* This gets created only from WDCollectionView. Not to be created directly by user */
 - (instancetype)initWithFrame:(NSRect)frame
@@ -38,10 +36,8 @@
 
 #pragma mark -
 #pragma mark Data change communication
-- (void) datasetChanged:(NSString*)datasetId;   /*dataset id can be changed but doesn't have to. Anything about the data could have changed. DatasetId can be nil*/
-- (void) dataInDatasetChanged:(NSString*)datasetId;
-- (void) indicesOfChangedItemsInCurrentDataset:(NSIndexSet *)indexSet;
-
+-(void) datasetChanged:(NSString*)datasetId;   /*dataset id can be changed but doesn't have to. Anything about the data could have changed. DatasetId can be nil*/
+-(id) dequeueReusableCell;
 
 #pragma mark -
 #pragma Public properties

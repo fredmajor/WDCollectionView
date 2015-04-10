@@ -122,6 +122,11 @@ static inline NSColor* randomNiceColor(){
                                          realPrepareIndices:(NSIndexSet*)prepareIndices
                                          realVisibleIndices:(NSIndexSet*)visibleIndices;
 +(NSIndexSet *)WDIndexesWhichChanged:(NSDictionary*) dictionaryFromDatasource;
++(CGRect) countFrameForItemAtIndex:(NSUInteger) index
+                   withColumnCount:(NSUInteger) colCou
+         withItemHorizontalSpacing:(CGFloat) hs
+                      withItemSize:(CGSize) itemSize
+           withItemVerticalSpacing:(CGFloat) vs;
 @end
 
 @implementation WDCollectionViewLayoutHelper
@@ -181,6 +186,24 @@ static inline NSColor* randomNiceColor(){
         }
     }];
     return res;
+}
+
+
++(CGRect) countFrameForItemAtIndex:(NSUInteger) index
+                   withColumnCount:(NSUInteger) colCou
+         withItemHorizontalSpacing:(CGFloat) hs
+                      withItemSize:(CGSize) itemSize
+           withItemVerticalSpacing:(CGFloat) vs{
+
+    NSInteger rowNo = index/colCou;
+    NSInteger colNo = index%colCou;
+
+    CGFloat wid = itemSize.width;
+    CGFloat hei = itemSize.height;
+    CGFloat x = hs+colNo*(hs+wid);
+    CGFloat y = vs+rowNo*(vs+hei);
+
+    return CGRectMake(x, y, wid, hei);
 }
 
 @end

@@ -7,9 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		321D941ABE5599CEFA300EDB /* WDGridViewLayoutManager.m in Sources */ = {isa = PBXBuildFile; fileRef = 321D98AC816C8E431A80F42E /* WDGridViewLayoutManager.m */; };
+		321D9842C7D7C3C989498C5A /* WDGridViewCell.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D92DC9F6923C74A4236D8 /* WDGridViewCell.h */; };
 		321D984A7AE693DE499098C4 /* WDCollectionLayoutHelpers.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D956885DB61BCCA45099F /* WDCollectionLayoutHelpers.h */; };
-		321D98F862726D349C83B162 /* WDCollectionViewItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D979313BC6698F69E11FA /* WDCollectionViewItem.h */; };
-		321D9EEC152EED60F1D2CC63 /* WDCollectionViewItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 321D9EDF8F9456582418286F /* WDCollectionViewItem.m */; };
+		321D98FE25FE657DFAF616F8 /* WDGridViewCell+WDCollectionViewMainView.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D9AC4DEBEA322B65D3AF6 /* WDGridViewCell+WDCollectionViewMainView.h */; };
+		321D9925B6C7098EBE6058B4 /* WDGridLayer.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D92BB89B2AC7573638CA6 /* WDGridLayer.h */; };
+		321D9A72F99424F34D567971 /* WDGridViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 321D92D6FB1181A818E55FBA /* WDGridViewCell.m */; };
+		321D9F1EB2A8EFD3F5D4D7C0 /* WDGridLayer.m in Sources */ = {isa = PBXBuildFile; fileRef = 321D96F4E35162D2935EECCE /* WDGridLayer.m */; };
+		321D9FD9EE12AF3480F79EAF /* WDGridViewLayoutManager.h in Headers */ = {isa = PBXBuildFile; fileRef = 321D924F47657492C2F0BCEC /* WDGridViewLayoutManager.h */; };
 		581FAA211AD1EBFA004F509A /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 581FAA201AD1EBFA004F509A /* QuartzCore.framework */; };
 		581FAA231AD1EC2D004F509A /* Quartz.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 581FAA221AD1EC2D004F509A /* Quartz.framework */; };
 		581FAA261AD1ED20004F509A /* AppKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 581FAA251AD1ED20004F509A /* AppKit.framework */; };
@@ -36,9 +41,14 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		321D924F47657492C2F0BCEC /* WDGridViewLayoutManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDGridViewLayoutManager.h; sourceTree = "<group>"; };
+		321D92BB89B2AC7573638CA6 /* WDGridLayer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDGridLayer.h; sourceTree = "<group>"; };
+		321D92D6FB1181A818E55FBA /* WDGridViewCell.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDGridViewCell.m; sourceTree = "<group>"; };
+		321D92DC9F6923C74A4236D8 /* WDGridViewCell.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDGridViewCell.h; sourceTree = "<group>"; };
 		321D956885DB61BCCA45099F /* WDCollectionLayoutHelpers.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDCollectionLayoutHelpers.h; sourceTree = "<group>"; };
-		321D979313BC6698F69E11FA /* WDCollectionViewItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WDCollectionViewItem.h; sourceTree = "<group>"; };
-		321D9EDF8F9456582418286F /* WDCollectionViewItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDCollectionViewItem.m; sourceTree = "<group>"; };
+		321D96F4E35162D2935EECCE /* WDGridLayer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDGridLayer.m; sourceTree = "<group>"; };
+		321D98AC816C8E431A80F42E /* WDGridViewLayoutManager.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WDGridViewLayoutManager.m; sourceTree = "<group>"; };
+		321D9AC4DEBEA322B65D3AF6 /* WDGridViewCell+WDCollectionViewMainView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "WDGridViewCell+WDCollectionViewMainView.h"; sourceTree = "<group>"; };
 		581FAA201AD1EBFA004F509A /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
 		581FAA221AD1EC2D004F509A /* Quartz.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Quartz.framework; path = System/Library/Frameworks/Quartz.framework; sourceTree = SDKROOT; };
 		581FAA251AD1ED20004F509A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -111,9 +121,14 @@
 				581FAA301AD1EE58004F509A /* WDCollectionView.m */,
 				581FAA331AD1EE9E004F509A /* WDCollectionViewMainView.h */,
 				581FAA341AD1EE9E004F509A /* WDCollectionViewMainView.m */,
-				321D9EDF8F9456582418286F /* WDCollectionViewItem.m */,
-				321D979313BC6698F69E11FA /* WDCollectionViewItem.h */,
 				321D956885DB61BCCA45099F /* WDCollectionLayoutHelpers.h */,
+				321D96F4E35162D2935EECCE /* WDGridLayer.m */,
+				321D92BB89B2AC7573638CA6 /* WDGridLayer.h */,
+				321D98AC816C8E431A80F42E /* WDGridViewLayoutManager.m */,
+				321D924F47657492C2F0BCEC /* WDGridViewLayoutManager.h */,
+				321D92D6FB1181A818E55FBA /* WDGridViewCell.m */,
+				321D92DC9F6923C74A4236D8 /* WDGridViewCell.h */,
+				321D9AC4DEBEA322B65D3AF6 /* WDGridViewCell+WDCollectionViewMainView.h */,
 			);
 			path = WDCollectionView;
 			sourceTree = "<group>";
@@ -153,8 +168,11 @@
 			files = (
 				581FAA351AD1EE9E004F509A /* WDCollectionViewMainView.h in Headers */,
 				581FAA311AD1EE58004F509A /* WDCollectionView.h in Headers */,
-				321D98F862726D349C83B162 /* WDCollectionViewItem.h in Headers */,
 				321D984A7AE693DE499098C4 /* WDCollectionLayoutHelpers.h in Headers */,
+				321D9925B6C7098EBE6058B4 /* WDGridLayer.h in Headers */,
+				321D9FD9EE12AF3480F79EAF /* WDGridViewLayoutManager.h in Headers */,
+				321D9842C7D7C3C989498C5A /* WDGridViewCell.h in Headers */,
+				321D98FE25FE657DFAF616F8 /* WDGridViewCell+WDCollectionViewMainView.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -257,7 +275,9 @@
 				58A903681AD3418800204950 /* WDCollectionLayoutHelpers.h in Sources */,
 				581FAA321AD1EE58004F509A /* WDCollectionView.m in Sources */,
 				581FAA361AD1EE9E004F509A /* WDCollectionViewMainView.m in Sources */,
-				321D9EEC152EED60F1D2CC63 /* WDCollectionViewItem.m in Sources */,
+				321D9F1EB2A8EFD3F5D4D7C0 /* WDGridLayer.m in Sources */,
+				321D941ABE5599CEFA300EDB /* WDGridViewLayoutManager.m in Sources */,
+				321D9A72F99424F34D567971 /* WDGridViewCell.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

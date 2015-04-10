@@ -8,9 +8,7 @@
 
 #import "WDCollectionView.h"
 #import "WDCollectionViewMainView.h"
-#import "WDCollectionViewItem.h"
-
-
+#import "WDGridViewCell.h"
 
 
 #pragma mark -
@@ -20,6 +18,8 @@
 -(void) commonInit;
 @property (weak, nonatomic) NSArray* WD_currentDatasource;
 @property (strong, nonatomic) NSString* WD_currentDatasourceId;
+
+-(WDGridViewCell *) tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex;
 @end
 
 @implementation WDCollectionView{
@@ -98,7 +98,23 @@
     return [NSDictionary dictionaryWithDictionary:response];
 }
 
-- (WDCollectionViewItem *)itemForIndex:(NSUInteger)index {
+-(WDGridViewCell*) itemForIndex:(NSUInteger) index {
+    WDGridViewCell *cell;
+    cell = [self tryToFindItemAskedForAtDifferentIndex:index];
+    if(!cell)
+        cell = [_mainCollectionView dequeueReusableCell];
+    if(!cell)
+        cell = [[WDGridViewCell alloc]init];
+    
+    id object = [self.WD_currentDatasource objectAtIndex:index];
+    cell.representedObject = object;
+   // cell.imageUrl =
+    cell.backgroundColor = [NSColor blueColor].CGColor;
+    
+    return cell;
+}
+
+-(WDGridViewCell *) tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex{
     return nil;
 }
 
@@ -124,5 +140,9 @@
 
 -(id<WDCollectionViewDataSource>)viewDataSource {       /*user can override in order to use a different object */
     return self;
+}
+
+-(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject{
+    return nil;
 }
 @end
