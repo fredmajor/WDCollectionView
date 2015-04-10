@@ -25,11 +25,16 @@
 -(void)WD_reloadCellsAtIndexes:(NSIndexSet *)indexes;
 -(void)WD_setViewSize:(NSSize)newSize;
 -(CALayer*)WD_RootLayerForDataset:(NSString *)datasetID;
+
+-(void)WD_orderLayoutAndDisplayForGridView; //call this if you need to both recalculate the layout and re-display the view
+-(void)WD_orderDisplayForGridView;          //call this if you need only redisplay
+
+
 -(void)WD_reorderSublayers;
-- (void)WD_updateDecorativeLayers;
-- (void)WD_layoutGridViewIfNeeded;
-- (void)WD_layoutGridView;
-- (void)WD_setNeedsLayoutGridView;
+-(void)WD_updateDecorativeLayers;
+-(void)WD_layoutGridViewIfNeeded;
+-(void)WD_layoutGridView;
+
 @end
 
 @implementation WDCollectionViewMainView{
@@ -151,8 +156,7 @@
     [self setWantsLayer:YES];
     //  self.translatesAutoresizingMaskIntoConstraints = NO;      /* doesn't work with this set... */
     [self setAutoresizingMask:NSViewNotSizable];
-    [self WD_setNeedsLayoutGridView];
-//    [self setNeedsDisplay:YES];
+    [self WD_orderDisplayForGridView];
 }
 
 #pragma mark -
@@ -161,40 +165,36 @@
     NSLog(@"----------------------------------------");
     NSLog(@"View is handling a dataset change for a dataset with id=%@", datasetId);
     NSString *oldDatasetID = [NSString stringWithString:_cachedDatasetId];
-
+    
     //dataset id has changed?
     if(![_cachedDatasetId isEqualToString:datasetId]){
         _cachedDatasetId=datasetId;
-
-        //do we already know the new dataset?
+        
         if(![_knownDatasets containsObject:_cachedDatasetId]){
             [self WD_initDefaultValuesForANewDataset];
             [self WD_calculateCachedStaticViewAndCellProperties];
             [_knownDatasets addObject:_cachedDatasetId];
         }
         [self WD_handleGraphicalChangeOfDataset:oldDatasetID];
+    // works even without that - perhaps the root layer sees a change via KVO [self WD_orderDisplayForGridView];  //no need to re-calculate layout since there was no change to graphical view properties
     }
-
-    //update view size if needed
+    
+    //if item count changed - consider updating view size
     NSUInteger datasetItemCount = [self.dataSource numberOfItemsInCurrentDataset];
     NSUInteger cachedDatasetItemCount =  [((NSNumber*)_cachedNumberOfItemsInDataset[datasetId]) unsignedIntegerValue];
     if(datasetItemCount!=cachedDatasetItemCount){
-        CGFloat requiredViewHeight = WDGetViewHeightToFitAllItems(datasetItemCount,
-                [((NSNumber*)_cachedNumberOfColumns[datasetId]) unsignedIntegerValue],
-                [((NSValue*)_itemCurrentSizes[datasetId]) sizeValue].height,
-                [((NSNumber*)_itemVerticalSpacing[_cachedDatasetId]) floatValue]);
-
+        CGFloat requiredViewHeight = WDGetViewHeightToFitAllItems(datasetItemCount, [((NSNumber*)_cachedNumberOfColumns[datasetId]) unsignedIntegerValue], [((NSValue*)_itemCurrentSizes[datasetId]) sizeValue].height, [((NSNumber*)_itemVerticalSpacing[_cachedDatasetId]) floatValue]);
         NSSize newViewSize = NSMakeSize([((NSValue *) _cachedAvailableEnclosingViewBounds[_cachedDatasetId]) rectValue].size.width, requiredViewHeight);
         NSSize cachedVieSize = [((NSValue*)_cachedCollectionViewSize[_cachedDatasetId]) sizeValue];
         if(!NSEqualSizes(newViewSize, cachedVieSize)){
             _cachedCollectionViewSize[_cachedDatasetId] = [NSValue valueWithSize:newViewSize];
             [self WD_setViewSize:newViewSize];
+            [self WD_orderDisplayForGridView];
         }
         _cachedNumberOfItemsInDataset[datasetId] = @(datasetItemCount);
     }
-
-    if(datasetItemCount >0){ //dataset not empty
-
+    
+    if(datasetItemCount >0){
         //ITEMS TO BE REMOVED (ENQUEUE FOR REUSE) = OLD CACHED INDICES - NEW CACHED INDICES
         NSRange potentialItemInCacheRange = [((NSValue *) _cachedRangesOfPotentialItemsInCacheArea[_cachedDatasetId]) rangeValue]; //purely graphical information
         NSIndexSet *currentIndicesInCacheRange = [WDCollectionViewLayoutHelper realIndexSetForPotentialRange:potentialItemInCacheRange andNumberOfItemsInDataset:datasetItemCount];
@@ -202,28 +202,29 @@
         [indicesToBeRemovedFromCacheRange removeIndexes:currentIndicesInCacheRange];
         NSLog(@"Number of items to be removed from cache area due to data change: %lu. Items remaining in the cache range: %lu", [indicesToBeRemovedFromCacheRange count], [currentIndicesInCacheRange count]);
         [self WD_enqueueCellsAtIndexes:indicesToBeRemovedFromCacheRange];
+        if([indicesToBeRemovedFromCacheRange count]>0) [self WD_orderDisplayForGridView];
         _cachedIndicesOfRealItemsInCacheArea[_cachedDatasetId] = currentIndicesInCacheRange;
-
+        
         //ITEMS TO BE ASKED FOR CHANGES AND LATER RELOADED
         NSRange potentialItemInPrepareAreaRange =[((NSValue *) _cachedRangesOfPotentialItemsInPrepareArea[_cachedDatasetId]) rangeValue];
         NSIndexSet *realItemInPrepareAreIndices = [WDCollectionViewLayoutHelper realIndexSetForPotentialRange:potentialItemInPrepareAreaRange andNumberOfItemsInDataset:datasetItemCount];
         _cachedIndicesOfRealItemsInPrepareArea[_cachedDatasetId] = realItemInPrepareAreIndices;
-
+        
         NSRange potentialItemInViewAreaRange = [((NSValue *) _cachedRangesOfPotentialItemsInVisibleArea[_cachedDatasetId]) rangeValue];
         NSIndexSet *realItemInViewAreaIndices = [WDCollectionViewLayoutHelper realIndexSetForPotentialRange:potentialItemInViewAreaRange andNumberOfItemsInDataset:datasetItemCount];
         _cachedIndicesOfRealItemsInVisibleArea[_cachedDatasetId] = realItemInViewAreaIndices;
-
+        
         NSArray* indexSetsToAskForChanges = [WDCollectionViewLayoutHelper WDCalculateReloadIndicesSetsFromRealCacheIndices:currentIndicesInCacheRange realPrepareIndices:realItemInPrepareAreIndices realVisibleIndices:realItemInViewAreaIndices];
-
-        //ask datasource for changed on indices and reload changed cells. Woohoo!
+        
+        //ask datasource for changes on indices and reload changed cells. Woohoo!
         for(NSIndexSet *setToAskForChanges in indexSetsToAskForChanges){
             NSDictionary *changes =  [self.dataSource didItemsChange:setToAskForChanges];
             NSIndexSet *changedIndices = [WDCollectionViewLayoutHelper WDIndexesWhichChanged:changes];
             [self WD_reloadCellsAtIndexes:changedIndices];
         }
-
+        
         _didDatasetHaveItemsLastTime[datasetId] = @YES;
-    }else{ //dataset empty
+    }else{
         if([_didDatasetHaveItemsLastTime[datasetId] boolValue]){
             [self WD_clearViewCachesAndDisplayNoItemsViewIfAvailable];
             _didDatasetHaveItemsLastTime[datasetId] = @NO;
@@ -300,20 +301,18 @@
     NSPoint pointToScrollTo = [((NSValue*)_cachedPositionsOfScrollView[_cachedDatasetId]) pointValue];
     [self WD_setViewSize:cachedVieSize];
     [[_enclosingScrollView documentView] scrollPoint:pointToScrollTo];
-   // [self setNeedsDisplay:YES];
-    [self WD_setNeedsLayoutGridView];
 }
 
 - (void) WD_clearViewCachesAndDisplayNoItemsViewIfAvailable{
     NSLog(@"Will clear caches and display no items view.");
+    //TODO - logic of showing and redisplaying
 }
 
 - (void)WD_enqueueCellsAtIndexes:(NSIndexSet *)indexes{
     if(!indexes || [indexes count] == 0) return;
 
     [indexes enumerateIndexesUsingBlock:
-            ^ (NSUInteger idx, BOOL *stop)
-            {
+            ^ (NSUInteger idx, BOOL *stop){
                 NSNumber *key = [NSNumber numberWithUnsignedInteger:idx];
                 WDGridViewCell *cell =  ((NSMutableDictionary *)_visibleItemByIndexForADataset[_cachedDatasetId])[key];
                 if(cell){
@@ -332,42 +331,31 @@
     
     [indexes enumerateIndexesUsingBlock:
      ^ (NSUInteger idx, BOOL *stop){
-         
          WDGridViewCell *newCell = [_dataSource itemForIndex:idx];
          WDGridViewCell *oldCell = _visibleItemByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]];
-         if(newCell != oldCell)
-         {
+         if(newCell != oldCell){
              if(oldCell) [newCell setFrame:[oldCell frame]];
              
              // Prepare the new cell for insertion
-             if (newCell)
-             {
+             if (newCell){
+                 
                  [newCell WD_setIndex:idx];
                  //                        [newCell setSelected:[_selectionIndexes containsIndex:idx] animated:NO];
-                 //
-                 //                        // Replace the old cell with the new cell
-                 if(oldCell)
-                 {
+                 if(oldCell){
                      [self WD_enqueueCellsAtIndexes:[NSIndexSet indexSetWithIndex:[oldCell WD_index]]];
                  }
                  [newCell setOpacity:1.0];
                  [newCell setHidden:NO];
-                 //
-                 
-                 if(!oldCell) [newCell setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:idx
-                                                                                       withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue]
-                                                                             withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue]
-                                                                                          withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue]
-                                                                               withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
+
+                 if(!oldCell) [newCell setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:idx withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue] withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue] withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue] withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
                  
                  _visibleItemByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]] = newCell;
                  [_rootLayerForDatasetId[_cachedDatasetId] addSublayer:newCell];
              }
-             
-             [self WD_setNeedsLayoutGridView];
          }
-         
      }];
+
+    [self WD_orderDisplayForGridView];
     [self WD_reorderSublayers];
 }
 
@@ -382,24 +370,7 @@
 -(void)WD_setViewSize:(NSSize)newSize{
     NSLog(@"Setting new view size: (%f,%f)", newSize.width, newSize.height);
     [self setFrameSize:newSize];
-    //[self setNeedsDisplay:YES];
-    [self WD_setNeedsLayoutGridView];
 }
-
-//- (OEGridViewCell *)cellForItemAtIndex:(NSUInteger)index makeIfNecessary:(BOOL)necessary
-//{
-//    OEGridViewCell *result = [_visibleCellByIndex objectForKey:[NSNumber numberWithUnsignedInt:index]];
-//    if(result == nil && necessary)
-//    {
-//        result = [_dataSource gridView:self cellForItemAtIndex:index];
-//        [result OE_setIndex:index];
-//        [result setSelected:[_selectionIndexes containsIndex:index] animated:NO];
-//        [result setFrame:[self rectForCellAtIndex:index]];
-//    }
-//
-//    return result;
-//}
-
 
 #pragma mark -
 #pragma mark View setup
@@ -431,7 +402,7 @@
         lay.backgroundColor = (randomNiceColor()).CGColor;
         _rootLayerForDatasetId[datasetID] = lay;
         [self WD_reorderSublayers];
-        [lay setNeedsLayout];
+        [self WD_orderDisplayForGridView];
     }
     return lay;
 }
@@ -446,11 +417,9 @@
 }
 
 - (void)layoutSublayers{
-    NSLog(@"WDCollectionViewMainView.layoutSublayers");
-   // [self OE_reloadDataIfNeeded];
+    NSLog(@"WDCollectionViewMainView.layoutSublayers called.");
     [self WD_updateDecorativeLayers];
     [self WD_layoutGridViewIfNeeded];
-
 }
 
 - (void)WD_updateDecorativeLayers {
@@ -471,24 +440,26 @@
 
 - (void)WD_layoutGridView{
     if([_visibleItemByIndexForADataset[_cachedDatasetId] count] == 0) return;
-    NSLog(@"layOut grid view - recalculating positions for cells.");
+    NSLog(@"layOutGridView - recalculating positions for cells.");
 
     [_visibleItemByIndexForADataset[_cachedDatasetId] enumerateKeysAndObjectsUsingBlock:
             ^ (NSNumber *key, WDGridViewCell *obj, BOOL *stop)
             {
                 NSUInteger keyU = [key unsignedIntegerValue];
-                [obj setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:keyU
-                                                                     withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue]
-                                                           withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue]
-                                                                        withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue]
-                                                             withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
+                [obj setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:keyU withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue] withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue] withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue] withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
             }];
 
     _needsLayoutGridViewForDatasetId[_cachedDatasetId] = @NO;
 }
 
-- (void)WD_setNeedsLayoutGridView {
+- (void)WD_orderLayoutAndDisplayForGridView {
     _needsLayoutGridViewForDatasetId[_cachedDatasetId] = @YES;
+    [_rootLayerForDatasetId[_cachedDatasetId] setNeedsLayout];
+}
+
+/*NEVER call setNeedsLayout directly, always go through this method*/
+-(void)WD_orderDisplayForGridView{
+    NSLog(@"ordering redisplay only for the grid view.");
     [_rootLayerForDatasetId[_cachedDatasetId] setNeedsLayout];
 }
 

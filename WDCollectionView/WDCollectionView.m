@@ -65,12 +65,11 @@
     [self setAutoresizingMask:NSViewNotSizable];
     
     /* Create the main collection view */
-    _mainCollectionView = [[WDCollectionViewMainView alloc] initWithFrame:self.bounds
-                                                            andScrollView:self];
+    _mainCollectionView = [[WDCollectionViewMainView alloc] initWithFrame:self.bounds andScrollView:self];
     [_mainCollectionView setDataSource:[self viewDataSource]];
     [_mainCollectionView setDelegate:[self viewDelegate]];
-
     [self setDocumentView:_mainCollectionView];
+    
     NSLog(@"WDCollectionView - common init done");
 
 }
