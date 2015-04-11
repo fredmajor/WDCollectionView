@@ -5,7 +5,6 @@
 #ifndef WDCollectionWorkspace_WDCollectionLayoutHelpers_h
 #define WDCollectionWorkspace_WDCollectionLayoutHelpers_h
 
-//#import <Cocoa/Cocoa.h>
 #import <Foundation/Foundation.h>
 #define RECTLOG(rect)    (NSLog(@""  #rect @" x:%f y:%f w:%f h:%f", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height ));
 
@@ -116,13 +115,13 @@ static inline NSColor* randomNiceColor(){
 }
 
 @interface WDCollectionViewLayoutHelper :NSObject
-+(NSIndexSet *)arrayWithNumbersToIndexSet:(NSArray*) array;
-+(NSIndexSet *)intersectGraphicalRangeWithDatasetItemNumber:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs;
-+(NSArray*)WDCalculateReloadIndicesSetsFromRealCacheIndices:(NSIndexSet *)cacheIndices
++ (NSIndexSet *)arrayWithNumbersToIndexSet:(NSArray*) array;
++ (NSIndexSet *)intersectGraphicalRangeWithDatasetItemNumber:(NSRange)potentialRange andNumberOfItemsInDataset:(NSUInteger)itemsInDs;
++ (NSArray*)WDCalculateReloadIndicesSetsFromRealCacheIndices:(NSIndexSet *)cacheIndices
                                          realPrepareIndices:(NSIndexSet*)prepareIndices
                                          realVisibleIndices:(NSIndexSet*)visibleIndices;
-+(NSIndexSet *)WDIndexesWhichChanged:(NSDictionary*) dictionaryFromDatasource;
-+(CGRect) countFrameForItemAtIndex:(NSUInteger) index
++ (NSIndexSet *)WDIndexesWhichChanged:(NSDictionary*) dictionaryFromDatasource;
++ (CGRect) countFrameForItemAtIndex:(NSUInteger) index
                    withColumnCount:(NSUInteger) colCou
          withItemHorizontalSpacing:(CGFloat) hs
                       withItemSize:(CGSize) itemSize
@@ -205,6 +204,7 @@ static inline NSColor* randomNiceColor(){
 
     return CGRectMake(x, y, wid, hei);
 }
+
 
 @end
 

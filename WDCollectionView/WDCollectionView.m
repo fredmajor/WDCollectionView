@@ -62,7 +62,7 @@
     [self setVerticalScrollElasticity:NSScrollElasticityAutomatic];
     [self setHorizontalScrollElasticity:NSScrollElasticityNone];
     [[self contentView]setPostsBoundsChangedNotifications:YES];
-    [self.contentView setCopiesOnScroll:NO];
+    [self.contentView setCopiesOnScroll:YES];
     [self setAutoresizesSubviews:NO];
     [self setAutoresizingMask:NSViewNotSizable];
     
@@ -102,20 +102,18 @@
 -(WDGridViewCell*) itemForIndex:(NSUInteger) index {
     WDGridViewMainCell *cell;
     cell = [self tryToFindItemAskedForAtDifferentIndex:index];
-    if(!cell)
+    
+    if(!cell){
         cell = [_mainCollectionView dequeueReusableCell];
-    if(!cell)
-        cell = [[NSClassFromString([[self class] classNameToUseAsMainCell]) alloc]init];
-    
-    id object = [self.WD_currentDatasource objectAtIndex:index];
-    cell.representedObject = object;
-    cell.delegate = self;
-    cell.itemCallback = _mainCollectionView;
-    cell.cacheProvider = self;
-    cell.backgroundColor = [NSColor blueColor].CGColor;
-    cell.imageUrl = [[self class] getImageUrlFromRepresentedObject:object];
-    [cell loadImageIfNeeded]; //can be called many times without side-effects
-    
+        if(!cell)
+            cell = [[NSClassFromString([[self class] classNameToUseAsMainCell]) alloc]init];
+        
+        id object = [self.WD_currentDatasource objectAtIndex:index];
+        cell.representedObject = object;
+        cell.delegate = self;
+        cell.itemCallback = _mainCollectionView;
+        cell.cacheProvider = self;
+    }
     return cell;
 }
 

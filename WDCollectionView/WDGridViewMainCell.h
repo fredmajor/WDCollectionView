@@ -27,10 +27,9 @@
 
 @property(nonatomic, weak) id<WDCollectionViewMainCellCallback> itemCallback;
 @property(nonatomic, weak) id<WDCollectionViewMainCellCacheProvider> cacheProvider;
-@property(nonatomic, weak) id representedObject;
-@property(nonatomic, strong) NSURL *imageUrl;
 
-- (void)loadImageIfNeeded;
-
+@property(nonatomic, weak) id   representedObject;
+@property(nonatomic, strong)    NSURL *imageUrl;
+@property(nonatomic,copy)       NSString *filenameToDisplay;
 
 @end

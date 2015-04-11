@@ -17,6 +17,8 @@
 - (void)prepareForReuse;
 - (void)didBecomeFocused;
 - (void)willResignFocus;
+- (void)didBecomeDisplayedOnView;
+- (void)didBecomeRemovedFromView;
 
 #pragma mark -
 #pragma mark Properties

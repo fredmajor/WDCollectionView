@@ -43,7 +43,7 @@
 - (void)layoutSublayers
 {
     [CATransaction begin];
-    [CATransaction setDisableActions:YES];
+   // [CATransaction setDisableActions:YES];
     [_foregroundLayer setFrame:[self bounds]];
     [CATransaction commit];
 }
@@ -89,6 +89,10 @@
 - (void)willResignFocus
 {
 }
+- (void)didBecomeDisplayedOnView{
+}
+- (void)didBecomeRemovedFromView{
+}
 
 #pragma mark -
 #pragma mark Properties
@@ -109,7 +113,7 @@
 
     NSImage *dragImage = [[NSImage alloc] initWithSize:imageSize];
     [dragImage addRepresentation:dragImageRep];
-    [dragImage setFlipped:YES];
+    //[dragImage setFlipped:YES];
 
     return dragImage;
 }
@@ -137,7 +141,7 @@
 
 - (void)WD_reorderLayers
 {
-    [super insertSublayer:_foregroundLayer atIndex:[[self sublayers] count]];
+    [super insertSublayer:_foregroundLayer atIndex:(unsigned int)[[self sublayers] count]];
 }
 
 - (void)setForegroundLayer:(CALayer *)foregroundLayer

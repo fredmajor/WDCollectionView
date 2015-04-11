@@ -321,6 +321,7 @@
                     [_inUseItemsByIndexForADataset[_cachedDatasetId] removeObjectForKey:key];
                     [_reusableItemsForADataset[_cachedDatasetId] addObject:cell];
                     [cell removeFromSuperlayer];
+                    [cell didBecomeRemovedFromView];
                 }
             }];
 }
@@ -351,6 +352,7 @@
                  
                  _inUseItemsByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]] = newCell;
                  [_rootLayerForDatasetId[_cachedDatasetId] addSublayer:newCell];
+                 [newCell didBecomeDisplayedOnView];
              }
          }
      }];
@@ -413,7 +415,7 @@
     unsigned int index = (unsigned int)[[_rootLayerForDatasetId[_cachedDatasetId] sublayers] count];
     [_rootLayerForDatasetId[_cachedDatasetId]  insertSublayer:_foregroundLayerForDatasetId[_cachedDatasetId] atIndex:index];
     [_rootLayerForDatasetId[_cachedDatasetId]  insertSublayer:_selectionLayerForDatasetId[_cachedDatasetId] atIndex:index];
-    //[_rootLayerForDatasetId[_cachedDatasetId]  insertSublayer:_dragIndicationLayer atIndex:index];
+ //   [_rootLayerForDatasetId[_cachedDatasetId]  insertSublayer:_dragIndicationLayer atIndex:index];
 }
 
 - (void)layoutSublayers{
@@ -461,6 +463,7 @@
 -(void)WD_orderDisplayForGridView{
     NSLog(@"ordering only redisplay (no calculations) for the grid view.");
     [_rootLayerForDatasetId[_cachedDatasetId] setNeedsLayout];
+    [_rootLayerForDatasetId[_cachedDatasetId] setNeedsDisplay];
 }
 
 - (BOOL)isItemInPreloadArea: (WDGridViewMainCell*) item{
@@ -472,6 +475,7 @@
     return contains;
 }
 
+//gets called from main thread
 - (void)itemFinishedLoadingImage: (WDGridViewMainCell*) source{
 }
 

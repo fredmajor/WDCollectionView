@@ -25,12 +25,8 @@
 //returns image data if the image is loaded; returns nil otherwise
 @property(nonatomic) CGImageRef imageToDisplay;
 @property(strong, nonatomic) NSURL *imagePath;
-@property(nonatomic) BOOL isVideo;
 
--(instancetype)initWithImagePath:(NSURL*) imPath
-                        andCache:(NSCache*) cache
-                         isVideo:(BOOL) isV
-              withCallbackTarger:(id<WDCollectionViewImageCallback>) callbackTarget;
+- (instancetype)initWithImageUrl:(NSURL *)imPath andCache:(NSCache *)cache withCallbackTarger:(id <WDCollectionViewImageCallback>)callbackTarget;
 
 //called externally to start loading image data from imagePath.
 //Caches the data once loaded

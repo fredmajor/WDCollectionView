@@ -29,6 +29,9 @@
 -(BOOL) handleCancelIfNeeded:(NSBlockOperation*) blockOperation withComment:(NSString *)str;
 -(BOOL) handleCancelIfNeeded:(NSBlockOperation*) blockOperation;
 
++ (BOOL)isFileAVideo:(NSURL*) fileUrl;
++ (BOOL)isFileAPhoto:(NSURL*) fileUrl;
+
 @end
 
 #pragma mark -
@@ -37,24 +40,21 @@
     CGImageRef _imageToDisplay;
     NSCache *_imCache;
     id<WDCollectionViewImageCallback> _callbackTarger;
+    BOOL _unableToLoad;
 }
 
 @dynamic imageToDisplay;
 @synthesize imagePath;
-@synthesize isVideo;
 
 static int _cancelCounter;
 
-- (instancetype)initWithImagePath:(NSURL*) imPath
-                         andCache:(NSCache*) cache
-                          isVideo:(BOOL)isV
-               withCallbackTarger:(id<WDCollectionViewImageCallback>)callbackTarget{
+- (instancetype)initWithImageUrl:(NSURL *)imPath andCache:(NSCache *)cache withCallbackTarger:(id <WDCollectionViewImageCallback>)callbackTarget {
     self = [super init];
     if(self){
         self.imagePath = imPath;
         _imCache = cache;
-        self.isVideo = isV;
         _callbackTarger = callbackTarget;
+        _unableToLoad=false;
     }
     return self;
 }
@@ -63,8 +63,9 @@ static int _cancelCounter;
 -(void) loadImage{
     
     //cache is already handled here
-    if(self.imageToDisplay){
+    if(self.imageToDisplay || _unableToLoad){
         // NSLog(@"Image already loaded.");
+        [_callbackTarger imageFinishedLoading];
         return;
     }
     
@@ -115,15 +116,15 @@ static int _cancelCounter;
 - (void) startImageLoadOperation{
     self.loadOrdered = YES;
     // NSLog(@"Ordering a load operation for a path:%@", self.imagePath);
-    
+
     NSBlockOperation    *loadImOperation = [[NSBlockOperation alloc]init];
-    
+
     if(!self.imagePath){
         self.loadOrdered = NO;
         return;
     }
     loadImOperation.name = [NSString stringWithString: [self.imagePath absoluteString]];
-    
+
     __weak NSBlockOperation *weakOp = loadImOperation;
     [loadImOperation addExecutionBlock:^{
         //    NSLog(@"Starting a load operation for a path:%@", self.imagePath);
@@ -132,40 +133,43 @@ static int _cancelCounter;
             NSLog(@"########!!!!!!STRONG OPERATION IS NIL...");
             return ;
         }
-        
+
         if(![self amIStillInPreloadArea]){
             NSLog(@"Not in preload anymore! Cancelling myself.. My name=%@", strongOp.name);
             [strongOp cancel];
         }
-        
-        
+
         if([self handleCancelIfNeeded:strongOp])return;
-        
+
         //      NSDate *loadStart = [NSDate date];
         CGImageRef thumbN;
-        if(!self.isVideo){
+        if([WDCollectionViewImage isFileAPhoto:self.imagePath]){
             thumbN = [WDCollectionViewImage getThumbnailForImageIO:self.imagePath heigth:wdCollectionThumbnailMaxSize];
-            if(!thumbN)NSLog(@"PHOTO IS NIL!!!");
-        }else{
+        }else if([WDCollectionViewImage isFileAVideo:self.imagePath]){
             thumbN = [WDCollectionViewImage getThumbnailForVideo:self.imagePath heigth:wdCollectionThumbnailMaxSize];
-            if(!thumbN)NSLog(@"VIDEO IS NIL!!!");
         }
-        
+
         //      NSTimeInterval loadTime = [[NSDate date] timeIntervalSinceDate:loadStart];
         //      NSLog(@"file load time: %f. Putting into cache now.fname=%@", loadTime, [self.imagePath lastPathComponent]);
-        
+
         //store EITHER in cache OR locally
-        if(_imCache){
-            [_imCache setObject:CFBridgingRelease(thumbN) forKey: [self.imagePath absoluteString]];
+        if(thumbN) {
+            if (_imCache) {
+                [_imCache setObject:CFBridgingRelease(thumbN) forKey:[self.imagePath absoluteString]];
+            } else {
+                _imageToDisplay = thumbN;
+            }
+            //tell the item that we're done here
         }else{
-            _imageToDisplay = thumbN;
+            NSLog(@"We were not able to load an image! Path=%@", [self.imagePath absoluteString]);
+            _unableToLoad = YES;
         }
-        
-        [_callbackTarger imageFinishedLoading];     //tell the item that we're done here
+        [_callbackTarger imageFinishedLoading];
+
         if(wdCollectionLoadThrottleTimeSleep > 0)[NSThread sleepForTimeInterval:wdCollectionLoadThrottleTimeSleep];
         self.loadOrdered = NO;
     }];
-    
+
     [[WDCollectionViewImage imageLoadOperationQueue]addOperation:loadImOperation];
 }
 
@@ -278,6 +282,28 @@ static int _cancelCounter;
     
     CGImageRef thumbnail = CGImageSourceCreateThumbnailAtIndex(myImageSource, 0, myOptionsT);
     return thumbnail;
+}
+
++ (BOOL)isFileAVideo:(NSURL*) fileUrl{
+    NSString *file = [fileUrl absoluteString];
+    CFStringRef fileExtension = (__bridge CFStringRef) [file pathExtension];
+    CFStringRef fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, fileExtension, NULL);
+    if (UTTypeConformsTo(fileUTI, kUTTypeMovie)){
+        return YES;
+    } else{
+        return NO;
+    }
+}
+
++ (BOOL)isFileAPhoto:(NSURL*) fileUrl{
+    NSString *file = [fileUrl absoluteString];
+    CFStringRef fileExtension = (__bridge CFStringRef) [file pathExtension];
+    CFStringRef fileUTI = UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, fileExtension, NULL);
+    if (UTTypeConformsTo(fileUTI, kUTTypeImage)){
+        return YES;
+    } else{
+        return NO;
+    }
 }
 
 @end
