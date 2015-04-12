@@ -19,12 +19,15 @@
 @property (weak, nonatomic) NSArray* WD_currentDatasource;
 @property (strong, nonatomic) NSString* WD_currentDatasourceId;
 
--(WDGridViewMainCell *)tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex;
+- (WDGridViewMainCell *)tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex;
+- (void)initForNewDataset;
 @end
 
 @implementation WDCollectionView{
     WDCollectionViewMainView *_mainCollectionView;
     NSCache* _cacheForImages;
+    NSMutableDictionary *_cachedUidsOfDataItemsForIndices;
+    NSMutableSet *_knownDatasets;
 }
 //public
 @synthesize itemSize;
@@ -55,6 +58,8 @@
 
 -(void) commonInit{
     _cacheForImages = [[NSCache alloc]init];
+    _cachedUidsOfDataItemsForIndices = [NSMutableDictionary dictionary];
+    _knownDatasets = [NSMutableSet set];
     [self setHasHorizontalScroller:NO];
     [self setHasVerticalScroller:YES];
     [self setBorderType:NSNoBorder];
@@ -73,7 +78,10 @@
     [self setDocumentView:_mainCollectionView];
     
     NSLog(@"WDCollectionView - common init done");
+}
 
+- (void)initForNewDataset{
+    _cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId] = [NSMutableDictionary dictionary];
 }
 
 /* This has to return an NSDictionary with indices of changed items. The Data source should maintain
@@ -90,11 +98,18 @@
     NSIndexSet *availableIndexSet = [indices indexesPassingTest:^BOOL(NSUInteger idx, BOOL *stop) {
         return [datasetIndexSet containsIndex:idx];
     }];
-
+    
     NSMutableDictionary *response = [NSMutableDictionary dictionaryWithCapacity:[availableIndexSet count]];
     [availableIndexSet enumerateIndexesUsingBlock:^(NSUInteger idx, BOOL *stop) {
-        //TODO - so far doesn't check which items really changed!
-        response[[NSNumber numberWithUnsignedInteger:idx]] = [NSNumber numberWithUnsignedInteger:NSNotFound];
+
+        id newDataItemIdForIndexInQuestion = [[self class] uniqueIdOfDataObject:self.WD_currentDatasource[idx]];
+        id cachedDataItemIdForIndexInQuestion = _cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId][[NSNumber numberWithUnsignedInteger:idx]];
+        if([newDataItemIdForIndexInQuestion isEqual:cachedDataItemIdForIndexInQuestion]){
+            response[[NSNumber numberWithUnsignedInteger:idx]] = [NSNumber numberWithUnsignedInteger:1];
+        }else{
+            response[[NSNumber numberWithUnsignedInteger:idx]] = [NSNumber numberWithUnsignedInteger:NSNotFound];
+        }
+        
     }];
     return [NSDictionary dictionaryWithDictionary:response];
 }
@@ -102,11 +117,16 @@
 -(WDGridViewCell*) itemForIndex:(NSUInteger) index {
     WDGridViewMainCell *cell;
     cell = [self tryToFindItemAskedForAtDifferentIndex:index];
+    if(cell)NSLog(@"Controller found item asked for at a different index.");
     
     if(!cell){
         cell = [_mainCollectionView dequeueReusableCell];
-        if(!cell)
+        if(cell)NSLog(@"Controller dequeued a reusable item");
+        if(!cell){
             cell = [[NSClassFromString([[self class] classNameToUseAsMainCell]) alloc]init];
+            NSLog(@"Controller created a new item");
+        }
+        
         
         id object = [self.WD_currentDatasource objectAtIndex:index];
         cell.representedObject = object;
@@ -114,11 +134,28 @@
         cell.itemCallback = _mainCollectionView;
         cell.cacheProvider = self;
     }
+    id newDataItemIdForIndexInQuestion = [[self class] uniqueIdOfDataObject:self.WD_currentDatasource[index]];
+    NSArray *oldKeysToRemove =  [_cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId] allKeysForObject:newDataItemIdForIndexInQuestion];
+    [_cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId] removeObjectsForKeys:oldKeysToRemove];
+    _cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId][[NSNumber numberWithUnsignedInteger:index]] = newDataItemIdForIndexInQuestion;
     return cell;
 }
 
 -(WDGridViewMainCell *)tryToFindItemAskedForAtDifferentIndex:(NSUInteger)askedIndex{
-    return nil;
+    id newDataItemIdForIndexInQuestion = [[self class] uniqueIdOfDataObject:self.WD_currentDatasource[askedIndex]]; //potrzebujemy itema z takim key. Pytanie gdzie/czy on wczesniej byl
+    NSArray* oldIndicesForAskedItem =  [_cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId] allKeysForObject:newDataItemIdForIndexInQuestion];
+    if([oldIndicesForAskedItem count] == 1){
+        NSUInteger oldIndexOfTheItem = [((NSNumber*)[oldIndicesForAskedItem firstObject]) unsignedIntegerValue];
+    //    NSLog(@"seems like an item from index %lu was before at index %lu", (unsigned long)askedIndex, oldIndexOfTheItem);
+        WDGridViewMainCell* oldItemForNewIdex = [_mainCollectionView inUseItemForIndex:oldIndexOfTheItem];
+        [_mainCollectionView removeInUseItemForIndex:oldIndexOfTheItem];    //now the item is not dequeued but also not visible under its old index
+        return oldItemForNewIdex;
+    }else if([oldIndicesForAskedItem count] == 0){
+        return nil;
+    }else{
+        NSLog(@"Something is wrong in here! Like the same item was displayed @ more than 1 index!!!");
+        return nil;
+    }
 }
 
 - (void)changedDatasource:(NSArray *)datasource withDatasourceId:(NSString *)datasourceID {
@@ -127,6 +164,10 @@
 
     self.WD_currentDatasource = datasource;
     self.WD_currentDatasourceId = datasourceID;
+    if(![_knownDatasets containsObject:datasourceID]){
+        [self initForNewDataset];
+        [_knownDatasets addObject:datasourceID];
+    }
     [_mainCollectionView datasetChanged:datasourceID];
 }
 
@@ -151,6 +192,9 @@
 
 -(NSCache*) cacheForLoadedImages{
     return _cacheForImages;
+}
++ (id)uniqueIdOfDataObject:(id)dataObject{
+    return nil;
 }
 
 @end

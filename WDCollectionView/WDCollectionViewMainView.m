@@ -245,6 +245,7 @@
              [_reusableItemsForADataset[_cachedDatasetId] addObject:cell];
              [cell removeFromSuperlayer];
              [cell didBecomeRemovedFromView];
+             NSLog(@"View enqueued an item for later reuse.");
          }
      }];
 }
@@ -475,12 +476,20 @@
     dispatch_sync(dispatch_get_main_queue(), ^{
         contains =[[((NSMutableDictionary*)_inUseItemsByIndexForADataset[_cachedDatasetId]) allValues] containsObject:item];
     });
-    NSLog(@"result of check if the item is in preload area: %d", contains);
+ //   NSLog(@"result of check if the item is in preload area: %d", contains);
     return contains;
 }
 
 //gets called from main thread
 - (void)itemFinishedLoadingImage: (WDGridViewMainCell*) source{
+}
+
+- (WDGridViewMainCell*)inUseItemForIndex:(NSUInteger)index{
+    return [_inUseItemsByIndexForADataset[_cachedDatasetId] objectForKey:[NSNumber numberWithUnsignedInteger:index]];
+}
+
+- (void)removeInUseItemForIndex:(NSUInteger)index{
+    [_inUseItemsByIndexForADataset[_cachedDatasetId] removeObjectForKey:[NSNumber numberWithUnsignedInteger:index]];
 }
 
 @end

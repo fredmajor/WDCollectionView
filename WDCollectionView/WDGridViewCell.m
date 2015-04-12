@@ -43,7 +43,7 @@
 - (void)layoutSublayers
 {
     [CATransaction begin];
-   // [CATransaction setDisableActions:YES];
+    [CATransaction setDisableActions:YES];
     [_foregroundLayer setFrame:[self bounds]];
     [CATransaction commit];
 }

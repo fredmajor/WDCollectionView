@@ -52,6 +52,6 @@
 -(id<WDCollectionViewDataSource>) viewDataSource;
 
 + (NSString*)classNameToUseAsMainCell;
-
++ (id)uniqueIdOfDataObject:(id)dataObject;
 
 @end

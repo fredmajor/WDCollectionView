@@ -16,12 +16,15 @@
 
 @interface WDGridViewMainCell()
 @property(nonatomic) CGImageRef image;
+- (void) orderImageLoad;
 @end
 
 @implementation WDGridViewMainCell{
     WDCollectionViewImage   *_internalImage;
     WDGridLayer             *_imageLayer;
     WDTextLayer             *_filenameLayer;
+    BOOL _isInUseNow;
+    BOOL _imageLoadOrdered;
 }
 
 @synthesize imageUrl = _imageUrl;
@@ -33,6 +36,8 @@
 
 - (instancetype)init{
     if((self = [super init])){
+        _isInUseNow = NO;
+        _imageLoadOrdered = NO;
         _imageLayer = [WDGridLayer layer];
         _imageLayer.contentsGravity = kCAGravityResizeAspect;
         _filenameLayer = [WDTextLayer layer];
@@ -90,6 +95,7 @@
     
     if(imageUrl){
         _internalImage = [[WDCollectionViewImage alloc] initWithImageUrl:_imageUrl andCache:[self.cacheProvider cacheForLoadedImages] withCallbackTarger:self];
+        [self orderImageLoad];
         self.filenameToDisplay = [_imageUrl lastPathComponent];
     }else{
         _internalImage = nil;
@@ -97,9 +103,23 @@
     }
 }
 
--(void) didBecomeDisplayedOnView{
-    if(_imageUrl && _internalImage){
+- (void) didBecomeDisplayedOnView{
+    _isInUseNow = YES;
+    if(_imageUrl && _internalImage && _imageLoadOrdered){
         [_internalImage loadImage];
+        _imageLoadOrdered = NO;
+    }
+}
+
+- (void) didBecomeRemovedFromView{
+    _isInUseNow = NO;
+}
+
+- (void) orderImageLoad{
+    if(_isInUseNow){
+        [_internalImage loadImage];
+    }else{
+        _imageLoadOrdered = YES;
     }
 }
 
