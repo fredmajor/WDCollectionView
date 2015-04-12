@@ -51,7 +51,6 @@
 -(id<WDCollectionViewDelegate>) viewDelegate;
 -(id<WDCollectionViewDataSource>) viewDataSource;
 
-+ (NSURL*) getImageUrlFromRepresentedObject:(id) representedObject;
 + (NSString*)classNameToUseAsMainCell;
 
 

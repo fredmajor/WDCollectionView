@@ -22,7 +22,6 @@
     WDCollectionViewImage   *_internalImage;
     WDGridLayer             *_imageLayer;
     WDTextLayer             *_filenameLayer;
-
 }
 
 @synthesize imageUrl = _imageUrl;

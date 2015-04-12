@@ -232,6 +232,58 @@
     }
 }
 
+- (void)WD_enqueueCellsAtIndexes:(NSIndexSet *)indexes{
+    if(!indexes || [indexes count] == 0) return;
+    
+    [indexes enumerateIndexesUsingBlock:
+     ^ (NSUInteger idx, BOOL *stop){
+         NSNumber *key = [NSNumber numberWithUnsignedInteger:idx];
+         WDGridViewCell *cell =  ((NSMutableDictionary *) _inUseItemsByIndexForADataset[_cachedDatasetId])[key];
+         if(cell){
+             //if([_fieldEditor delegate] == cell) [self OE_cancelFieldEditor];
+             [_inUseItemsByIndexForADataset[_cachedDatasetId] removeObjectForKey:key];
+             [_reusableItemsForADataset[_cachedDatasetId] addObject:cell];
+             [cell removeFromSuperlayer];
+             [cell didBecomeRemovedFromView];
+         }
+     }];
+}
+
+- (void)WD_reloadCellsAtIndexes:(NSIndexSet *)indexes{
+    // If there is no index set or no items in the index set, then there is nothing to update
+    if([indexes count] == 0) return;
+    
+    [indexes enumerateIndexesUsingBlock:
+     ^ (NSUInteger idx, BOOL *stop){
+         WDGridViewCell *newCell = [_dataSource itemForIndex:idx];
+         WDGridViewCell *oldCell = _inUseItemsByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]];
+         if(newCell != oldCell){
+             if(oldCell) [newCell setFrame:[oldCell frame]];
+             
+             // Prepare the new cell for insertion
+             if (newCell){
+                 
+                 [newCell WD_setIndex:idx];
+                 //                        [newCell setSelected:[_selectionIndexes containsIndex:idx] animated:NO];
+                 if(oldCell){
+                     [self WD_enqueueCellsAtIndexes:[NSIndexSet indexSetWithIndex:[oldCell WD_index]]];
+                 }
+                 [newCell setOpacity:1.0];
+                 [newCell setHidden:NO];
+                 
+                 if(!oldCell) [newCell setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:idx withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue] withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue] withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue] withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
+                 
+                 _inUseItemsByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]] = newCell;
+                 [_rootLayerForDatasetId[_cachedDatasetId] addSublayer:newCell];
+                 [newCell didBecomeDisplayedOnView];
+             }
+         }
+     }];
+    
+    [self WD_orderDisplayForGridView];
+    [self WD_reorderSublayers];
+}
+
 - (void) WD_calculateCachedStaticViewAndCellProperties{
     NSLog(@"Calcuating cacahed view and cell properties.");
 
@@ -308,57 +360,9 @@
     //TODO - logic of showing and redisplaying
 }
 
-- (void)WD_enqueueCellsAtIndexes:(NSIndexSet *)indexes{
-    if(!indexes || [indexes count] == 0) return;
-
-    [indexes enumerateIndexesUsingBlock:
-            ^ (NSUInteger idx, BOOL *stop){
-                NSNumber *key = [NSNumber numberWithUnsignedInteger:idx];
-                WDGridViewCell *cell =  ((NSMutableDictionary *) _inUseItemsByIndexForADataset[_cachedDatasetId])[key];
-                if(cell){
-//                    if([_fieldEditor delegate] == cell) [self OE_cancelFieldEditor];
-
-                    [_inUseItemsByIndexForADataset[_cachedDatasetId] removeObjectForKey:key];
-                    [_reusableItemsForADataset[_cachedDatasetId] addObject:cell];
-                    [cell removeFromSuperlayer];
-                    [cell didBecomeRemovedFromView];
-                }
-            }];
-}
-
-- (void)WD_reloadCellsAtIndexes:(NSIndexSet *)indexes{
-    // If there is no index set or no items in the index set, then there is nothing to update
-    if([indexes count] == 0) return;
+- (NSArray*) getAllInUseItemsForCurrentDataset{
+    return [_inUseItemsByIndexForADataset[_cachedDatasetId] allValues];
     
-    [indexes enumerateIndexesUsingBlock:
-     ^ (NSUInteger idx, BOOL *stop){
-         WDGridViewCell *newCell = [_dataSource itemForIndex:idx];
-         WDGridViewCell *oldCell = _inUseItemsByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]];
-         if(newCell != oldCell){
-             if(oldCell) [newCell setFrame:[oldCell frame]];
-             
-             // Prepare the new cell for insertion
-             if (newCell){
-                 
-                 [newCell WD_setIndex:idx];
-                 //                        [newCell setSelected:[_selectionIndexes containsIndex:idx] animated:NO];
-                 if(oldCell){
-                     [self WD_enqueueCellsAtIndexes:[NSIndexSet indexSetWithIndex:[oldCell WD_index]]];
-                 }
-                 [newCell setOpacity:1.0];
-                 [newCell setHidden:NO];
-
-                 if(!oldCell) [newCell setFrame:[WDCollectionViewLayoutHelper countFrameForItemAtIndex:idx withColumnCount:[((NSNumber*) _cachedNumberOfColumns[_cachedDatasetId]) unsignedIntegerValue] withItemHorizontalSpacing:[((NSNumber*)_itemCurrentHorizontalSpacing[_cachedDatasetId]) floatValue] withItemSize:[((NSValue*) _itemCurrentSizes[_cachedDatasetId]) sizeValue] withItemVerticalSpacing:[((NSNumber*) _itemVerticalSpacing[_cachedDatasetId]) floatValue]] ];
-                 
-                 _inUseItemsByIndexForADataset[_cachedDatasetId][[NSNumber numberWithUnsignedInteger:idx]] = newCell;
-                 [_rootLayerForDatasetId[_cachedDatasetId] addSublayer:newCell];
-                 [newCell didBecomeDisplayedOnView];
-             }
-         }
-     }];
-
-    [self WD_orderDisplayForGridView];
-    [self WD_reorderSublayers];
 }
 
 -(id) dequeueReusableCell{

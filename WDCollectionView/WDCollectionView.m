@@ -145,11 +145,6 @@
 }
 
 /* Overloaded in a subclass*/
-+(NSURL*) getImageUrlFromRepresentedObject:(id) representedObject{
-    return nil;
-}
-
-/* Overloaded in a subclass*/
 + (NSString*)classNameToUseAsMainCell{
     return @"WDGridViewMainCell";
 }

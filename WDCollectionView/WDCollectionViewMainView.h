@@ -37,8 +37,9 @@
 
 #pragma mark -
 #pragma mark Data change communication
--(void) datasetChanged:(NSString*)datasetId;   /*dataset id can be changed but doesn't have to. Anything about the data could have changed. DatasetId can be nil*/
--(id) dequeueReusableCell;
+- (void) datasetChanged:(NSString*)datasetId;   /*dataset id can be changed but doesn't have to. Anything about the data could have changed. DatasetId can be nil*/
+- (id) dequeueReusableCell;
+- (NSArray*) getAllInUseItemsForCurrentDataset;
 
 #pragma mark -
 #pragma Public properties
