@@ -48,6 +48,10 @@
     return self;
 }
 
+- (void)mouseUpAtPointInLayer:(NSPoint)point withEvent:(NSEvent *)theEvent{
+    NSLog(@"mouse up!");
+}
+
 - (void) prepareForReuse{
     [super prepareForReuse];
     self.representedObject = nil;
@@ -60,7 +64,6 @@
     return [self.itemCallback isItemInPreloadArea:self];
 }
 
-
 /*called from an image when it's loaded. This should display the image */
 - (void)imageFinishedLoading{
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -72,18 +75,23 @@
 
 - (void)layoutSublayers{
     [super layoutSublayers];
-    CGRect me = self.bounds;
-    CGFloat textY = 4.f/5.f * me.size.height;
-    CGRect imageRect = CGRectMake(0, 0, me.size.width, textY-4);
-    [_imageLayer setFrame:imageRect];
-    CGPathRef shadowPath = CGPathCreateWithRect([_imageLayer bounds], NULL);
-    if (_imageLayer.shadowOpacity) {
-        [_imageLayer setShadowPath:shadowPath];
-    }
-    CGPathRelease(shadowPath);
+    
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
 
-    CGRect textFrame = CGRectMake(0, textY, me.size.width, me.size.height-textY);
+    CGRect me = self.bounds;
+    CGFloat textY = floorf( 4.f/5.f * me.size.height);
+    CGRect imageRect = CGRectMake(0, 0, floorf(me.size.width), textY-4);
+    [_imageLayer setFrame:imageRect];
+//    CGPathRef shadowPath = CGPathCreateWithRect([_imageLayer bounds], NULL);
+//    if (_imageLayer.shadowOpacity) {
+//        [_imageLayer setShadowPath:shadowPath];
+//    }
+//    CGPathRelease(shadowPath);
+
+    CGRect textFrame = CGRectMake(0, textY, floorf(me.size.width), floorf(me.size.height-textY));
     [_filenameLayer setFrame:textFrame];
+    [CATransaction commit];
 }
 
 - (void)setImageUrl:(NSURL *)imageUrl {

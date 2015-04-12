@@ -21,11 +21,13 @@
 #define wdCollectionUseWidthAndAspectForZoom YES
 #define wdCollectionItemDefaultAspect 0.75F
 
-#define wdCollectionPrepareItemsAreaExtensionUp 100
+#define wdCollectionPrepareItemsAreaExtensionUp 200
 #define wdCollectionPrepareItemsAreaExtensionDown 300
 
-#define wdCollectionCacheItemsAreaExtensionUp 300
-#define wdCollectionCacheItemsAreaExtensionDown 600
+#define wdCollectionCacheItemsAreaExtensionUp 3000
+#define wdCollectionCacheItemsAreaExtensionDown 3000
+
+extern NSString * const wdCollectionViewElementSizeChanged;
 
 @class WDCollectionView, WDGridViewCell;
 
@@ -43,6 +45,9 @@
 
 - (WDGridViewMainCell*)inUseItemForIndex:(NSUInteger)index;
 - (void) removeInUseItemForIndex:(NSUInteger)index;
+
+
+-(void) setItemSizeBasedOnWidthAndAspect:(CGFloat)newWidth;
 
 #pragma mark -
 #pragma Public properties

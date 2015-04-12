@@ -13,6 +13,8 @@
 #import "WDGridViewCell.h"
 #import "WDGridViewCell+WDCollectionViewMainView.h"
 
+NSString * const wdCollectionViewElementSizeChanged = @"wdCollectionViewElementSizeChanged";
+
 
 @interface WDCollectionViewMainView()
 - (void)WD_commonInit;
@@ -168,11 +170,11 @@
 
     [self setLayer:[self WD_RootLayerForDataset:WDCollectionNilDataset]];
     [self setFrameSize:_enclosingScrollView.contentView.bounds.size];
-    //[self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawDuringViewResize];
-    [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
+    [self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawDuringViewResize];
+    //[self setLayerContentsRedrawPolicy:NSViewLayerContentsRedrawOnSetNeedsDisplay];
     [self setWantsLayer:YES];
     //  self.translatesAutoresizingMaskIntoConstraints = NO;      /* doesn't work with this set... */
-    [self setAutoresizingMask:NSViewNotSizable];
+    [self setAutoresizingMask:kCALayerWidthSizable | kCALayerHeightSizable];
     [self WD_orderDisplayForGridView];
 }
 
@@ -224,11 +226,62 @@
     }
 }
 
+- (void)magnifyWithEvent:(NSEvent *)event{
+    CGFloat mag = [event magnification];
+    CGFloat itemW = [((NSValue*)_itemCurrentSizes[_cachedDatasetId]) sizeValue].width;
+    itemW = itemW+itemW*mag;
+    [self setItemSizeBasedOnWidthAndAspect:itemW];
+}
+
+- (void)setItemSizeBasedOnWidthAndAspect:(CGFloat)newWidth{
+    NSLog(@"----------------------------------------");
+    NSLog(@"Handling resize!!");
+    NSDate *start = [NSDate date];
+    CGFloat aspect = [((NSNumber*)_itemAspectForAspectMode[_cachedDatasetId]) floatValue];
+    NSSize newItemSize =WDCalculateSize(newWidth, aspect);
+    NSSize itemMaxSize =  [((NSValue*)_itemMaxSizes[_cachedDatasetId]) sizeValue];
+    NSSize itemMinSize =  [((NSValue*)_itemMinSizes[_cachedDatasetId]) sizeValue];
+    if(newItemSize.width>itemMaxSize.width ||newItemSize.width<itemMinSize.width) return;
+
+    _itemCurrentSizes[_cachedDatasetId] =[NSValue valueWithSize:newItemSize];
+    
+    NSSize cachedViewSize = [((NSValue*) _cachedCollectionViewSize[_cachedDatasetId]) sizeValue];
+    [self WD_calcColumnCountAndHorSpacingBasedOnCachedProperties];
+    [self WD_handleCollectionViewResizeIfNeeded];
+    [self WD_calculatePotentialRangesBasedOnCachedProperties];
+    NSSize newViewSize = [((NSValue*) _cachedCollectionViewSize[_cachedDatasetId]) sizeValue];
+    
+    //scroll to keep the same items in the view
+    CGFloat resizeRatio =  newViewSize.height / cachedViewSize.height;
+    NSPoint currentScrollPosition=[[_enclosingScrollView contentView] bounds].origin;
+    
+    NSPoint newScrollPosition;
+    newScrollPosition.x = currentScrollPosition.x;
+    newScrollPosition.y = currentScrollPosition.y * resizeRatio;
+    if(newScrollPosition.y<0.0f) newScrollPosition.y = 0.0f;
+    NSRect cachedAvailableViewSize = [((NSValue*) _cachedContentViewBounds[_cachedDatasetId]) rectValue];
+    CGFloat maxPossibleScrollY = newViewSize.height - cachedAvailableViewSize.size.height;
+    if(newScrollPosition.y >= maxPossibleScrollY) newScrollPosition.y = maxPossibleScrollY-1;
+    [[_enclosingScrollView documentView] scrollPoint:newScrollPosition];
+    
+    [self WD_orderLayoutAndDisplayForGridView];
+    
+    
+    [[NSNotificationCenter defaultCenter] postNotificationName:wdCollectionViewElementSizeChanged
+                                                        object:self];
+    NSLog(@"handling resize  time:%f", [[NSDate date]timeIntervalSinceDate:start] );
+ 
+//    NSArray *indexSetsToAskForChanges;
+//    indexSetsToAskForChanges = [self arrayOfIndicesOfItemsToAskForChangesAndMakeSureAreDisplayed];
+//    [self WD_reloadItemsAtIndexesIfNeeded:indexSetsToAskForChanges];
+}
+
 //e.g. scroll
 -(void) WD_EnclosingViewBoundsDidChange: (NSNotification *)notification{
     NSLog(@"----------------------------------------");
     NSLog(@"Handling bounds change!!");
     
+    NSDate *start = [NSDate date];
     NSRect newAvailableViewSize = [[_enclosingScrollView contentView] bounds];
     NSRect cachedAvailableViewSize = [((NSValue*) _cachedContentViewBounds[_cachedDatasetId]) rectValue];
     if(!NSEqualRects(newAvailableViewSize, cachedAvailableViewSize)){
@@ -239,6 +292,7 @@
     NSArray *indexSetsToAskForChanges;
     indexSetsToAskForChanges = [self arrayOfIndicesOfItemsToAskForChangesAndMakeSureAreDisplayed];
     [self WD_reloadItemsAtIndexesIfNeeded:indexSetsToAskForChanges];
+    NSLog(@"handling bounds change time:%f", [[NSDate date]timeIntervalSinceDate:start] );
 }
 
 
@@ -485,7 +539,7 @@
         [lay setDelegate:self];
         lay.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
         [lay setFrame:self.bounds];
-        //[lay setNeedsDisplayOnBoundsChange:NO];
+        [lay setNeedsDisplayOnBoundsChange:YES];
         [lay setMasksToBounds:NO];
        // lay.autoresizingMask = kCALayerNotSizable;
         lay.backgroundColor = (randomNiceColor()).CGColor;
@@ -544,6 +598,7 @@
 - (void)WD_orderLayoutAndDisplayForGridView {
     _needsLayoutGridViewForDatasetId[_cachedDatasetId] = @YES;
     [_rootLayerForDatasetId[_cachedDatasetId] setNeedsLayout];
+    [self setNeedsDisplay:YES];
 }
 
 /*NEVER call setNeedsLayout directly, always go through this method*/
@@ -561,6 +616,8 @@
  //   NSLog(@"result of check if the item is in preload area: %d", contains);
     return contains;
 }
+
+
 
 //gets called from main thread
 - (void)itemFinishedLoadingImage: (WDGridViewMainCell*) source{
