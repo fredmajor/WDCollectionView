@@ -16,7 +16,7 @@
 @protocol WDCollectionViewDataSource <NSObject>
 @required
 -(NSUInteger) numberOfItemsInCurrentDataset;
--(NSDictionary *)didItemsChange:(NSIndexSet*)indices;
+-(NSDictionary *)doItemsRequireReload:(NSIndexSet*)indices;
 -(WDGridViewCell*) itemForIndex:(NSUInteger) index;
 
 @optional

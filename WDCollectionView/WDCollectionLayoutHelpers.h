@@ -18,7 +18,7 @@ static inline NSRange WDRowsVisibleInPartOfView(CGRect partOfView, CGFloat itemH
     CGFloat yrmax = partOfView.origin.y + partOfView.size.height;
     CGFloat rowMinF = floorf((yrmin - vertSpacing)/(vertSpacing+itemH));
     if(rowMinF<0) rowMinF=0;
-    CGFloat rowMaxF = floor((yrmax-vertSpacing)/(vertSpacing+itemH));
+    CGFloat rowMaxF = floorf((yrmax-vertSpacing)/(vertSpacing+itemH));
     return NSMakeRange((NSUInteger)rowMinF, (NSUInteger)rowMaxF);
 }
 

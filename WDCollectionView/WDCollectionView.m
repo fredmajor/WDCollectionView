@@ -67,7 +67,8 @@
     [self setVerticalScrollElasticity:NSScrollElasticityAutomatic];
     [self setHorizontalScrollElasticity:NSScrollElasticityNone];
     [[self contentView]setPostsBoundsChangedNotifications:YES];
-    [self.contentView setCopiesOnScroll:YES];
+    [[self contentView]setPostsFrameChangedNotifications:YES];
+    [self.contentView setCopiesOnScroll:NO];
     [self setAutoresizesSubviews:NO];
     [self setAutoresizingMask:NSViewNotSizable];
     
@@ -90,8 +91,10 @@
  * The index set can contain less indices then the range asked for. That means there is less data then
  * the view can accommodate. This is not a problem, this is a protocol.
  */
--(NSDictionary *)didItemsChange:(NSIndexSet*)indices{
-    NSLog(@"Datasource says: view just asked me to check for changes in index set of length %lu", [indices count]);
+/* Returns NSNotFound (require reload) if a data item changed, or the item is not in use and require reload.
+   The view calls this method only if it wants to display the items in question. */
+-(NSDictionary *)doItemsRequireReload:(NSIndexSet*)indices{
+   // NSLog(@"Datasource says: view just asked me to check for changes in index set of length %lu", [indices count]);
     NSUInteger itemsInDataset = [self numberOfItemsInCurrentDataset];
     NSRange datasetRange =  NSMakeRange(0, itemsInDataset);
     NSIndexSet *datasetIndexSet = [NSIndexSet indexSetWithIndexesInRange:datasetRange];
@@ -104,7 +107,8 @@
 
         id newDataItemIdForIndexInQuestion = [[self class] uniqueIdOfDataObject:self.WD_currentDatasource[idx]];
         id cachedDataItemIdForIndexInQuestion = _cachedUidsOfDataItemsForIndices[self.WD_currentDatasourceId][[NSNumber numberWithUnsignedInteger:idx]];
-        if([newDataItemIdForIndexInQuestion isEqual:cachedDataItemIdForIndexInQuestion]){
+        id inUseItem = [_mainCollectionView inUseItemForIndex:idx];
+        if([newDataItemIdForIndexInQuestion isEqual:cachedDataItemIdForIndexInQuestion] && inUseItem){
             response[[NSNumber numberWithUnsignedInteger:idx]] = [NSNumber numberWithUnsignedInteger:1];
         }else{
             response[[NSNumber numberWithUnsignedInteger:idx]] = [NSNumber numberWithUnsignedInteger:NSNotFound];
@@ -126,7 +130,6 @@
             cell = [[NSClassFromString([[self class] classNameToUseAsMainCell]) alloc]init];
             NSLog(@"Controller created a new item");
         }
-        
         
         id object = [self.WD_currentDatasource objectAtIndex:index];
         cell.representedObject = object;
@@ -193,6 +196,8 @@
 -(NSCache*) cacheForLoadedImages{
     return _cacheForImages;
 }
+
+/* Overloaded in a subclass*/
 + (id)uniqueIdOfDataObject:(id)dataObject{
     return nil;
 }
